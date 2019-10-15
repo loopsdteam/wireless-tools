@@ -76,6 +76,16 @@ var WPA_CLI_SCAN_NORESULTS = [
     ''
 ].join('\n');
 
+var WPA_CLI_LIST_NETWORKS_RESULTS = [
+    'network id / ssid / bssid / flags',
+    '0\tsdteam2G\tany\t[CURRENT]',
+    '1\t\tany\t[DISABLED]'
+].join('\n');
+
+var WPA_CLI_LIST_NETWORKS_NORESULTS = [
+    'network id / ssid / bssid / flags'
+].join('\n');
+
 var WPA_CLI_COMMAND_OK = 'OK\n';
 var WPA_CLI_COMMAND_FAIL = 'FAIL\n';
 var WPA_CLI_COMMAND_ID = '0\n';
@@ -487,6 +497,60 @@ describe('wpa_cli', function() {
             };
 
             wpa_cli.remove_network('wlan0', 28, function(err, status) {
+                should(err).eql('error');
+                done();
+            });
+        });
+    });
+
+    describe('wpa_cli.list_networks(iface, callback)', function(){
+        before(function() {
+            this.OUTPUT = '';
+            var self = this;
+
+            wpa_cli.exec = function(command, callback) {
+                should(command).eql('wpa_cli -i wlan0 list_networks');
+                callback(null, self.OUTPUT);
+            };
+        });
+
+        it('list_networks NORESULTS', function (done) {
+            this.OUTPUT = WPA_CLI_LIST_NETWORKS_NORESULTS;
+
+            wpa_cli.list_networks('wlan0', function(err, results) {
+                should(results).eql([]);
+                done();
+            });
+        });
+
+        it('list_networks COMPLETED', function(done) {
+            this.OUTPUT = WPA_CLI_LIST_NETWORKS_RESULTS;
+            wpa_cli.list_networks('wlan0', function(err, results) {
+                should(results).eql([
+                    {
+                        network_id: 0,
+                        ssid: 'sdteam2G',
+                        bssid: 'any',
+                        flags: '[CURRENT]'
+                    },
+                    {
+                        network_id: 1,
+                        ssid: '',
+                        bssid: 'any',
+                        flags: '[DISABLED]'
+                    },
+                ]);
+
+                done();
+            });
+        });
+
+        it('should handle errors', function(done) {
+            wpa_cli.exec = function(command, callback) {
+                callback('error');
+            };
+
+            wpa_cli.scan_results('wlan0', function(err, results) {
                 should(err).eql('error');
                 done();
             });
