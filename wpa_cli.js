@@ -239,7 +239,7 @@ function parse_list_networks(block) {
     })
 }
 
-function parse_list_networks(block) {
+function parse_get_network(block) {
     return block
 }
 
