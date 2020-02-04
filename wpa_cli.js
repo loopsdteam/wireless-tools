@@ -38,6 +38,7 @@ var wpa_cli = module.exports = {
     set: set,
     add_network: add_network,
     set_network: set_network,
+    get_network: get_network,
     enable_network: enable_network,
     disable_network: disable_network,
     remove_network: remove_network,
@@ -238,6 +239,10 @@ function parse_list_networks(block) {
     })
 }
 
+function parse_list_networks(block) {
+    return block
+}
+
 /**
  * Parses the status for a scan_results request.
  *
@@ -265,6 +270,16 @@ function parse_list_networks_interface(callback) {
             callback(error, parse_list_networks(stdout.trim()))
         }
     }
+}
+
+function parse_get_network_interface(callback) {
+    return function(error, stdout, stderr) {
+        if (error) {
+            callback(error);
+        } else {
+            callback(error, parse_get_network(stdout.trim()))
+        }
+    };
 }
 
 
@@ -412,6 +427,16 @@ function list_networks(interface, callback) {
         'list_networks' ].join(' ')
 
     return this.exec(command, parse_list_networks_interface(callback))
+}
+
+function get_network(interface, id, key, callback) {
+    var command = ['wpa_cli -i',
+        interface,
+        'get_network',
+        id,
+        key ].join(' ')
+
+    return this.exec(command, parse_get_network_interface(callback))
 }
 
 function select_network(interface, id, callback) {
